@@ -1,0 +1,232 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.pyd
+*.dll
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+*.hypothesis*
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Lint / type checker caches
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+.ruff_cache/
+.pylint.d/
+
+# Profilers
+.prof
+.pyinstrument*
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# Poetry
+poetry.lock
+.poetry-cache/
+.poetry/
+
+# PDM
+.pdm-build/
+.pdm-python/
+__pypackages__/
+
+# uv
+.uv/
+
+# Hatch
+.hatch/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.pythonenv/
+
+# Direnv
+.direnv/
+
+# Conda
+conda-env.yaml
+*.conda
+*.ipynb_checkpoints/
+
+# Spyder / Rope / etc.
+.spyderproject
+.spyproject
+.ropeproject
+
+# IDE / Editor
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS / Filesystem
+.DS_Store
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Logs / Databases
+*.log
+*.sqlite
+*.sqlite3
+db.sqlite3
+
+# Django / Flask / Others
+*.pot
+*.pyc
+local_settings.py
+instance/
+.webassets-cache
+celerybeat-schedule
+celerybeat.pid
+
+# FastAPI / Uvicorn
+uvicorn.log
+
+# Scrapy
+.scrapy
+
+# Sphinx
+docs/_build/
+doc/_build/
+
+# MkDocs
+site/
+
+# Static analysis
+bandit.json
+safety-report.json
+
+# Coverage tooling
+.pytest_cache/
+.coverage*
+coverage.xml
+
+# Cache
+*.cache
+cache/
+tmp/
+temp/
+
+# Media / Large files
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.bz2
+
+# Binary artifacts
+*.bin
+*.dat
+
+# Lock files (optional)
+# requirements.lock
+
+# Local secrets (be careful not to commit real ones)
+*.env
+.env.*
+.envrc
+secrets.json
+
+# Pycharm
+*.iml
+out/
+
+# Notebook checkpoints (already above but explicit)
+.ipynb_checkpoints/
+
+# Performance / benchmarking
+.benchmarks/
+
+# Coverage HTML artifacts
+coverage_html/
+
+# Misc
+*.bak
+*.swp
+*.swo
+*~
+
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pkl
+*.svg
+*.xlsx
+*.xls
+*.csv
+*.json
+*.doc
+*.docx
+*.pptx
