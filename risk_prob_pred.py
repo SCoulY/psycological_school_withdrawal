@@ -26,11 +26,11 @@ top10_features_children = ['CSES_TS', 'HEI_TS', 'A-DES-Ⅱ_PI', 'A-DES-Ⅱ_AII',
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
-    args.add_argument('--file_path', type=str, help='Path to the excel file', default='C:/Users/SCoulY/Desktop/psycology/data/clean_children.csv')
-    args.add_argument('--ckpt_path', type=str, help='Path to the checkpoint file', default='C:/Users/SCoulY/Desktop/psycology/ckpt_w_scaler/children_correct/children')
-    args.add_argument('--output_path', type=str, help='Path to save the plot', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct/top10')
+    args.add_argument('--file_path', type=str, help='Path to the excel file', default='data/clean_children.csv')
+    args.add_argument('--ckpt_path', type=str, help='Path to the checkpoint file', default='ckpt/children')
+    args.add_argument('--output_path', type=str, help='Path to save the plot', default='risk_prob/top10')
     args.add_argument('--disable_top10', default=False, action='store_true', help='Whether to use top 10 features')
-    args.add_argument('--scaler_path', type=str, default='C:/Users/SCoulY/Desktop/psycology/ckpt_w_scaler/children_correct/children/clean_children_scaler_top10.pkl', help='Path to previously saved scaler bundle (.pkl) to reuse statistics')
+    args.add_argument('--scaler_path', type=str, default='ckpt/children/clean_children_scaler_top10.pkl', help='Path to previously saved scaler bundle (.pkl) to reuse statistics')
 
     args = args.parse_args()
 
@@ -124,7 +124,7 @@ if __name__ == "__main__":
     df.insert(1, 'LogisticRegression', y_pred_LR)
     df.insert(1, 'RandomForest', y_pred_RF)
 
-    df.insert(1, 'status', Y)
+    # df.insert(1, 'School Withdrawal/ Reentry Status', Y)
         
     df.to_excel(os.path.join(args.output_path, f'{file_name}_risk_prob.xlsx'), index=False)
  

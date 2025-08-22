@@ -68,11 +68,11 @@ def quantile(mu, std):
 
 def select_with_fallback(df, model_cols, high=True, min_samples=10):
     if high:
-        sel = (df['status'] == 0) & (
+        sel = (df['School Withdrawal/ Reentry Status'] == 0) & (
             (df[model_cols[0]] <= 0.3) & (df[model_cols[1]] <= 0.3)
         )
     else:
-        sel = (df['status'] == 1) & (
+        sel = (df['School Withdrawal/ Reentry Status'] == 1) & (
             (df[model_cols[0]] >= 0.7) & (df[model_cols[1]] >= 0.7)
         )
 
@@ -83,37 +83,37 @@ def select_with_fallback(df, model_cols, high=True, min_samples=10):
         if high:
             ind_top10 = df[model_cols].max(axis=1).nsmallest(10).index
             ind_top10 = df[model_cols].min(axis=1).nlargest(10).index
-            sel = (df['status'] == 0) & (df.index.isin(ind_top10))
+            sel = (df['School Withdrawal/ Reentry Status'] == 0) & (df.index.isin(ind_top10))
         else:
             ind_top10 = df[model_cols].min(axis=1).nlargest(10).index
-            sel = (df['status'] == 1) & (df.index.isin(ind_top10))
+            sel = (df['School Withdrawal/ Reentry Status'] == 1) & (df.index.isin(ind_top10))
         selected = df[sel]
 
     # Try top-20
     if len(selected) < min_samples:
         if high:
             ind_top20 = df[model_cols].min(axis=1).nsmallest(20).index
-            sel = (df['status'] == 0) & (df.index.isin(ind_top20))
+            sel = (df['School Withdrawal/ Reentry Status'] == 0) & (df.index.isin(ind_top20))
         else:
             ind_top20 = df[model_cols].max(axis=1).nlargest(20).index
-            sel = (df['status'] == 1) & (df.index.isin(ind_top20))
+            sel = (df['School Withdrawal/ Reentry Status'] == 1) & (df.index.isin(ind_top20))
         selected = df[sel]
 
     # Final fallback: ensure at least min_samples
     if len(selected) < min_samples:
         if high:
-            selected = df[df['status'] == 0].sort_values(by=model_cols, ascending=True).head(min_samples)
+            selected = df[df['School Withdrawal/ Reentry Status'] == 0].sort_values(by=model_cols, ascending=True).head(min_samples)
         else:
-            selected = df[df['status'] == 1].sort_values(by=model_cols, ascending=False).head(min_samples)
+            selected = df[df['School Withdrawal/ Reentry Status'] == 1].sort_values(by=model_cols, ascending=False).head(min_samples)
 
     return selected
 
 def cal_stats(df, save_path=None):
     df_high_risk = select_with_fallback(df, ['LogisticRegression', 'RandomForest'], high=True)
-    print(f'high risk: {df_high_risk.shape[0]}, total_withdraw: {df[df["status"] == 0].shape[0]}')
+    print(f'high risk: {df_high_risk.shape[0]}, total_withdraw: {df[df["School Withdrawal/ Reentry Status"] == 0].shape[0]}')
 
     df_low_risk = select_with_fallback(df, ['LogisticRegression', 'RandomForest'], high=False)
-    print(f'low risk: {df_low_risk.shape[0]}, total_recover: {df[df["status"] == 1].shape[0]}')
+    print(f'low risk: {df_low_risk.shape[0]}, total_recover: {df[df["School Withdrawal/ Reentry Status"] == 1].shape[0]}')
 
     if save_path:
         #save description to excel
@@ -189,15 +189,20 @@ def compute_signed_anomaly_score(value, high_q, low_q):
  
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
-    args.add_argument('--file_path', type=str, help='Path to the excel file', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct/top10/clean_children_risk_prob.xlsx')
-    args.add_argument('--kde_q_high_path', type=str, help='Path to the kde_q_high json file', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct/stats/children_kde_q_high.json')
-    args.add_argument('--kde_q_low_path', type=str, help='Path to the kde_q_low json file', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct/stats/children_kde_q_low.json')
-    args.add_argument('--output_path', type=str, help='Path to save the plot', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct')
+    args.add_argument('--file_path', type=str, help='Path to the excel file', default='risk_prob/full/clean_children_risk_prob.xlsx')
+    args.add_argument('--kde_q_high_path', type=str, help='Path to the kde_q_high json file', default='children_kde_q_high.json')
+    args.add_argument('--kde_q_low_path', type=str, help='Path to the kde_q_low json file', default='children_kde_q_low.json')
+    args.add_argument('--output_path', type=str, help='Path to save the plot', default='risk_prob/full/')
 
     args = args.parse_args()
 
-    df = pd.read_excel(args.file_path)
-    df = column_name2eng(df)
+    if args.file_path.endswith('.xlsx') or args.file_path.endswith('.xls'):
+        df = pd.read_excel(args.file_path)
+    elif args.file_path.endswith('.csv'):
+        df = pd.read_csv(args.file_path, encoding='utf-8')
+    # df = column_name2eng(df)
+
+    print(df.columns.tolist())
     df_uncertainty = df.copy()
     if 'Age' in df.columns:
         df.drop(columns=['Age'], inplace=True)
@@ -209,17 +214,18 @@ if __name__ == "__main__":
 
     if 'adults' in os.path.basename(args.file_path):
         name = 'adults'
-    elif 'children' in os.path.basename(args.file_path) or 'teens_wo_scl' in os.path.basename(args.file_path):
+    elif 'children' in os.path.basename(args.file_path):
         name = 'children'
-    elif 'teens_risk' in os.path.basename(args.file_path):
+    elif 'teens' in os.path.basename(args.file_path):
         name = 'teens'
     else:
         raise ValueError("Unknown file type, please check the file name.")
     df_low_risk, df_high_risk = cal_stats(df)
+    print(df_low_risk.columns.tolist())
 
     ## quantile calculation and save to json
-    df_high_risk = df_high_risk.drop(columns=['status', 'LogisticRegression', 'RandomForest'])
-    df_low_risk = df_low_risk.drop(columns=['status', 'LogisticRegression', 'RandomForest'])
+    df_high_risk = df_high_risk.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
+    df_low_risk = df_low_risk.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
 
     features = df_high_risk.columns.to_list()
 
@@ -238,13 +244,13 @@ if __name__ == "__main__":
     kde_q_low.to_json(os.path.join(stats_path, f'{name}_kde_q_low.json'), orient='index')
 
     ### place each data point in the three defined confidence intervals
-    df = df.drop(columns=['status', 'LogisticRegression', 'RandomForest'])
+    df = df.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
     features = df.columns.to_list()
 
-    with open(args.kde_q_high_path, 'r') as f:
+    with open(os.path.join(stats_path, args.kde_q_high_path), 'r') as f:
         kde_q_high = json.load(f)
         kde_q_high = pd.DataFrame(kde_q_high).T
-    with open(args.kde_q_low_path, 'r') as f:
+    with open(os.path.join(stats_path, args.kde_q_low_path), 'r') as f:
         kde_q_low = json.load(f)
         kde_q_low = pd.DataFrame(kde_q_low).T
 

@@ -79,11 +79,11 @@ def train_classifier(classifier, ckpt_path=None, out_path=None, disable_top10=Fa
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
-    args.add_argument('--file_path', type=str, help='Path to the excel/csv file', default='C:/Users/SCoulY/Desktop/psycology/data/clean_adults.csv')
-    args.add_argument('--out_path', type=str, help='Path to the output model file', default='C:/Users/SCoulY/Desktop/psycology/ckpt_w_scaler/children_correct/adults')
+    args.add_argument('--file_path', type=str, help='Path to the excel/csv file', default='data/clean_adults.csv')
+    args.add_argument('--out_path', type=str, help='Path to the output model file', default='ckpt/adults')
     args.add_argument('--ckpt_path', type=str, help='Path to the checkpoint file', default=None)
     args.add_argument('--classifier', type=str, nargs='+', help='Classifier to use', default=['SVM', 'RandomForest', 'LogisticRegression'])
-    args.add_argument('--disable_top10', action='store_true', help='Disable top 10 features for building the model', default=False)
+    args.add_argument('--disable_top10', action='store_true', help='Disable top 10 features for building the model', default=True)
     args.add_argument('--scaler_path', type=str, help='Path to a saved scaler bundle (joblib) containing scaler and column info', default=None)
     args = args.parse_args()
 

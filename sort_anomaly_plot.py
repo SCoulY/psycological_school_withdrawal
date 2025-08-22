@@ -69,8 +69,8 @@ def single_plot(ax, args, uncert_path, method):
 
 if __name__ == '__main__':
     args = argparse.ArgumentParser()
-    args.add_argument('--uncert_path', type=str, help='Path to the anomaly files of three age groups', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct')
-    args.add_argument('--output_path', type=str, help='Path to save the plot', default='C:/Users/SCoulY/Desktop/psycology/data/risk_uncertainty_top10_children_correct')
+    args.add_argument('--uncert_path', type=str, help='Path to the anomaly files of three age groups', default='/Users/colin/Desktop/psycological_school_withdrawaw/risk_prob/top10')
+    args.add_argument('--output_path', type=str, help='Path to save the plot', default='/Users/colin/Desktop/psycological_school_withdrawaw/risk_prob/top10/anomaly_plot')
     args.add_argument('--disable_top10', default=False, action='store_true', help='Whether to use top 10 features')
     args = args.parse_args()
 
