@@ -1,10 +1,29 @@
 ## Setup and usage guide
 
-This guide shows how to set up the Python environment and run the full workflow: train models, plot importances and SHAP, generate risk probabilities, compute anomalies, and render anomaly heatmaps. Paths below assume you run commands from the repo root `/psycology`.
+This guide shows how to set up the Python environment and run the full workflow: train models, plot importances and SHAP, generate risk probabilities, compute anomalies, and render anomaly heatmaps. Paths below assume you run commands from the repo root `/psycological_school_withdraw`.
 
 ---
 
-## 1) Install environment (mamba/Conda + pip)
+## Clone the repository
+
+First, clone/download this [repository](https://github.com/SCoulY/psycological_school_withdrawal) to your local machine:
+
+```bash
+git clone git@github.com:SCoulY/psycological_school_withdrawal.git
+cd psycological_school_withdrawal
+```
+
+Or if you prefer using HTTPS:
+
+```bash
+git clone https://github.com/SCoulY/psycological_school_withdrawal.git
+cd psycological_school_withdrawal
+```
+
+---
+
+## Install environment (Conda/Mamba + pip)
+Install miniconda from [official website](https://www.anaconda.com/docs/getting-started/miniconda/install).
 
 Create and activate a clean Conda/Mamba environment, then install Python packages from `requirements.txt`.
 
@@ -20,12 +39,29 @@ pip install -r requirements.txt
 ```
 
 Notes
-- Works on Windows PowerShell. If you don’t have Mamba, use `conda` instead of `mamba` for the first line.
 - The requirements include numpy, pandas, scikit-learn, shap, seaborn, matplotlib, scipy, joblib, tqdm, etc.
 
 ---
 
-## 2) Train classifiers
+## Interactive single-sample prediction
+
+Run the notebook UI in IDE (e.g. [VS Code](https://code.visualstudio.com/download)) to interactively predict and explain one sample.
+
+Steps
+1) Open `single_sample_inference.ipynb` in IDE.
+2) Select the Python kernel from the `school-withdrawal` env (Command Palette → “Python: Select Interpreter”). If prompted, install the IPython kernel into the env.
+3) In the third cell, update any variables that point to the trained checkpoints and scaler bundle.
+4) Run cells top-to-bottom. Provide feature values or select a row as instructed in the notebook. The notebook will scale inputs, load the model(s), predict risk probabilities, and render KDE heatmap explanations.
+
+---
+
+Troubleshooting
+- Paths: Prefer running from the repo root so relative paths like `ckpt/adults/*` resolve correctly.
+- Fonts/plots: If labels don’t render, ensure matplotlib/seaborn fonts are installed or use default settings.
+- Top-10 switch: In `classifier.py`, `--disable_top10` defaults to True and uses a `store_true` flag. To train with top-10 features, you may need to change the default in the script or add a complementary flag.
+
+## If you prefer using customised models, follow instructions to train models below
+## Train classifiers
 
 Run with defaults (adults dataset; all features since top-10 selection is disabled by default):
 
@@ -50,7 +86,7 @@ Tips
 
 ---
 
-## 3) Plot feature importances
+## Plot feature importances
 
 Generates averaged feature-importance plots across 5-run checkpoints per model and cohort.
 
@@ -59,7 +95,7 @@ Run with portable relative paths:
 python imp_plot.py --file_path data --ckpt_path ./ckpt/children --plot_path ./plot/
 ```
 
-Default arguments (in the script; absolute paths are already set to this repo on Windows)
+Default arguments (in the script; absolute paths are already set to this repo)
 - `--file_path` (str, default `psycology/data`): Folder containing the cohort CSVs. The script infers which CSV to read from checkpoint filenames.
 - `--ckpt_path` (str, default `psycology/ckpt/children/`): Folder with 5-run model `.pkl` files (LogisticRegression/RandomForest; SVM is skipped).
 - `--plot_path` (str, default `psycology/plot/`): Output folder for the PDF figure.
@@ -70,7 +106,7 @@ Notes
 
 ---
 
-## 4) Plot SHAP explanations 
+## Plot SHAP explanations 
 
 Computes and aggregates SHAP values across checkpoints, then renders circular SHAP summary plots per model and feature set.
 
@@ -89,7 +125,7 @@ Outputs
 
 ---
 
-## 5) Predict risk probabilities 
+## Predict risk probabilities 
 Generates per-student withdrawal risk probabilities by averaging predictions across 5-run checkpoints, then saves an Excel file.
 
 Run with defaults (children, both top10 and full models):
@@ -111,13 +147,13 @@ Tips
 
 ---
 
-## 6) Compute anomaly scores and quantiles
+## Compute anomaly scores and quantiles
 
 Builds KDE-based 5th/95th quantiles for "high-risk" and "low-risk" groups (split by predicted probabilities + ground truth), then assigns a signed anomaly score per feature. Now supports batch processing of multiple files.
 
 Run (process all three groups in a single command):
 ```bash
-python anomaly_quantile.py --file_path python anomaly_quantile.py --file_path risk_prob/full/clean_adults_risk_prob_full.xlsx risk_prob/full/clean_teens_risk_prob_full.xlsx risk_prob/full/clean_children_risk_prob_full.xlsx
+python anomaly_quantile.py --file_path risk_prob/full/clean_adults_risk_prob_full.xlsx risk_prob/full/clean_teens_risk_prob_full.xlsx risk_prob/full/clean_children_risk_prob_full.xlsx
 ```
 
 Arguments (defaults shown)
@@ -131,7 +167,7 @@ Outputs
 
 ---
 
-## 7) Plot anomaly heatmaps
+## Plot anomaly heatmaps
 
 Renders ordered anomaly heatmaps for Adults/Teens/Children side-by-side for each model.
 
@@ -140,7 +176,7 @@ Run (set paths to your anomaly Excel files from step 6):
 python sort_anomaly_plot.py --uncert_path risk_prob/top10 --output_path risk_prob/top10/anomaly_plot
 ```
 
-Arguments (defaults in script use macOS-style absolute paths; overriding is recommended on Windows)
+Arguments (defaults in script use macOS-style absolute paths;)
 - `--uncert_path` (str): Folder containing `adults_anomaly.xlsx`, `teens_anomaly.xlsx`, `children_anomaly.xlsx`.
 - `--output_path` (str): Output folder for the combined PDF figure.
 - `--disable_top10` (flag, default `False`): If present, plot “All features”; if omitted, plot “Top 10 features”.
@@ -149,20 +185,3 @@ Outputs
 - `top10_anomaly.pdf` or `all_anomaly.pdf` in `output_path`.
 
 ---
-
-## 8) Interactive single-sample prediction
-
-Run the notebook UI in IDE to interactively predict and explain one sample.
-
-Steps
-1) Open `single_sample_inference.ipynb` in IDE.
-2) Select the Python kernel from the `school-withdrawal` env (Command Palette → “Python: Select Interpreter”). If prompted, install the IPython kernel into the env.
-3) In the first cells, update any variables that point to your trained checkpoints (from step 2) and scaler bundle (saved in `ckpt_5runs/...`).
-4) Run cells top-to-bottom. Provide feature values or select a row as instructed in the notebook. The notebook will scale inputs, load the model(s), predict risk probabilities, and render explanations (e.g., SHAP).
-
----
-
-Troubleshooting
-- Paths: Prefer running from the repo root so relative paths like `data/clean_*.csv` resolve correctly. Otherwise, pass explicit `--file_path`, `--ckpt_path`, etc.
-- Fonts/plots: If labels don’t render, ensure matplotlib/seaborn fonts are installed or use default settings.
-- Top-10 switch: In `classifier.py`, `--disable_top10` defaults to True and uses a `store_true` flag. To train with top-10 features, you may need to change the default in the script or add a complementary flag.
