@@ -28,13 +28,13 @@ def plot_single_table(file_path: str, save_path: str):
     # Data Loading and Preprocessing 
     # This section remains largely the same
     input_file = file_path #'C:/Users/SCoulY/Desktop/psycology/data/clean_adults.xlsx'
-    df = pd.read_excel(input_file)
-    df = df.drop(df.columns[0], axis=1)
+    df = pd.read_csv(input_file)
+
     table_name = os.path.basename(input_file).split('.')[0]
 
     # Features and Labels
-    feat = df.drop(columns=['状态'])
-    label = df['状态'].map({"复学": 1, "休学": 0})
+    feat = df.drop(columns=['School Withdrawal/ Reentry Status'])
+    label = df['School Withdrawal/ Reentry Status']
     label.name = 'Status' # Simplified for legend
 
     feat = column_name2eng(feat)
@@ -93,8 +93,8 @@ def plot_single_table(file_path: str, save_path: str):
                 edgecolors='k',
                 linewidth=0.3
             )
-            ax.set_xlabel('UMAP 1')
-            ax.set_ylabel('UMAP 2')
+            ax.set_xlabel('PCA 1')
+            ax.set_ylabel('PCA 2')
             ax.xaxis.set_ticklabels([])
             ax.yaxis.set_ticklabels([])
             score_text = ax.text(0.05, 0.95, f"Silhouette: {score:.2f}  ARI: {ari:.2f}", transform=ax.transAxes, fontsize=13)
@@ -110,9 +110,9 @@ def plot_single_table(file_path: str, save_path: str):
                 edgecolors='k',
                 linewidth=0.2
             )
-            ax.set_xlabel('UMAP 1', labelpad=-4)
-            ax.set_ylabel('UMAP 2', labelpad=-4)
-            ax.set_zlabel('UMAP 3', labelpad=-4)
+            ax.set_xlabel('PCA 1', labelpad=-4)
+            ax.set_ylabel('PCA 2', labelpad=-4)
+            ax.set_zlabel('PCA 3', labelpad=-4)
             # Clean up the 3D view
             ax.xaxis.set_ticklabels([])
             ax.yaxis.set_ticklabels([])
@@ -186,11 +186,13 @@ def plot_single_table(file_path: str, save_path: str):
 
 if __name__ == "__main__":
     file_list = [
-        'C:/Users/SCoulY/Desktop/psycology/data/clean_adults.xlsx',
-        'C:/Users/SCoulY/Desktop/psycology/data/clean_teens_wo_scl.xlsx',
-        'C:/Users/SCoulY/Desktop/psycology/data/clean_teens.xlsx'
+        '/Users/colin/Desktop/psycological_school_withdrawaw/data/clean_adults.csv',
+        '/Users/colin/Desktop/psycological_school_withdrawaw/data/clean_children.csv',
+        '/Users/colin/Desktop/psycological_school_withdrawaw/data/clean_teens.csv'
         ]
+    output_dir = '/Users/colin/Desktop/psycological_school_withdrawaw/plot_correct_pca'
+    os.makedirs(output_dir, exist_ok=True)
     for file_path in file_list:
-        plot_single_table(file_path, save_path='C:/Users/SCoulY/Desktop/psycology/plot/')
+        plot_single_table(file_path, save_path=output_dir)
 
 
