@@ -173,7 +173,7 @@ if __name__ == "__main__":
     # This assumes a naming convention like 'dataname_modelname_..._run_X.pkl'
     ckpt_groups = defaultdict(list)
     for ckpt in os.listdir(args.ckpt_path):
-        if '.pkl' in ckpt and 'SVM' not in ckpt:
+        if '.pkl' in ckpt and 'SVM' not in ckpt and 'scaler' not in ckpt:
             ckpt_groups[ckpt].append(ckpt)
 
     # --- Process each group of models ---

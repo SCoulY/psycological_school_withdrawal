@@ -189,79 +189,132 @@ def compute_signed_anomaly_score(value, high_q, low_q):
  
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
-    args.add_argument('--file_path', type=str, help='Path to the excel file', default='risk_prob/full/clean_children_risk_prob.xlsx')
-    args.add_argument('--kde_q_high_path', type=str, help='Path to the kde_q_high json file', default='children_kde_q_high.json')
-    args.add_argument('--kde_q_low_path', type=str, help='Path to the kde_q_low json file', default='children_kde_q_low.json')
-    args.add_argument('--output_path', type=str, help='Path to save the plot', default='risk_prob/full/')
+    args.add_argument('--file_path', type=str, nargs='+', help='Path(s) to the excel/csv file(s). Can specify multiple files for batch processing.', default=['risk_prob/full/clean_children_risk_prob.xlsx'])
+    args.add_argument('--kde_q_path', type=str, help='Path to the kde_q_high json file', default='quantiles')
+    args.add_argument('--output_path', type=str, help='Path to save the plot', default=None)
 
     args = args.parse_args()
 
-    if args.file_path.endswith('.xlsx') or args.file_path.endswith('.xls'):
-        df = pd.read_excel(args.file_path)
-    elif args.file_path.endswith('.csv'):
-        df = pd.read_csv(args.file_path, encoding='utf-8')
-    # df = column_name2eng(df)
+    # Process each file
+    for file_path in args.file_path:
+        print(f"\n{'='*60}")
+        print(f"Processing file: {file_path}")
+        print(f"{'='*60}")
 
-    print(df.columns.tolist())
-    df_uncertainty = df.copy()
-    if 'Age' in df.columns:
-        df.drop(columns=['Age'], inplace=True)
-    if 'Gender' in df.columns:
-        df.drop(columns=['Gender'], inplace=True)
-    if 'name' in df.columns:
-        df.drop(columns=['name'], inplace=True)
+        if file_path.endswith('.xlsx') or file_path.endswith('.xls'):
+            df = pd.read_excel(file_path)
+        elif file_path.endswith('.csv'):
+            df = pd.read_csv(file_path, encoding='utf-8')
+        else:
+            print(f"Unsupported file format for {file_path}. Skipping...")
+            continue
+        
+        # df = column_name2eng(df)
 
+        print(f"Columns in dataset: {df.columns.tolist()}")
+        df_uncertainty = df.copy()
+        
+        # Clean up columns
+        if 'Age' in df.columns:
+            df.drop(columns=['Age'], inplace=True)
+        if 'Gender' in df.columns:
+            df.drop(columns=['Gender'], inplace=True)
+        if 'name' in df.columns:
+            df.drop(columns=['name'], inplace=True)
 
-    if 'adults' in os.path.basename(args.file_path):
-        name = 'adults'
-    elif 'children' in os.path.basename(args.file_path):
-        name = 'children'
-    elif 'teens' in os.path.basename(args.file_path):
-        name = 'teens'
-    else:
-        raise ValueError("Unknown file type, please check the file name.")
-    df_low_risk, df_high_risk = cal_stats(df)
-    print(df_low_risk.columns.tolist())
+        # Determine group name from file path
+        if 'adults' in os.path.basename(file_path):
+            name = 'adults'
+        elif 'children' in os.path.basename(file_path):
+            name = 'children'
+        elif 'teens' in os.path.basename(file_path):
+            name = 'teens'
+        else:
+            print(f"Warning: Cannot determine group type from filename {file_path}. Skipping...")
+            continue
 
-    ## quantile calculation and save to json
-    df_high_risk = df_high_risk.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
-    df_low_risk = df_low_risk.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
+        print(f"Processing group: {name}")
+        
+        try:
+            df_low_risk, df_high_risk = cal_stats(df)
+            print(f"Low risk samples: {len(df_low_risk)}, High risk samples: {len(df_high_risk)}")
+        except Exception as e:
+            print(f"Error calculating stats for {file_path}: {e}")
+            continue
 
-    features = df_high_risk.columns.to_list()
+        ## quantile calculation and save to json
+        df_high_risk_clean = df_high_risk.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
+        df_low_risk_clean = df_low_risk.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
 
-    # df_high_risk and df_low_risk are your filtered groups
-    kde_q_high = compute_kde_quantiles(df_high_risk, features)
-    kde_q_low = compute_kde_quantiles(df_low_risk, features)
+        features = df_high_risk_clean.columns.to_list()
+        print(f"Features for quantile calculation: {len(features)} features")
 
-    # print(kde_q_high)
-    # print(kde_q_low)
+        # Compute KDE quantiles
+        try:
+            kde_q_high = compute_kde_quantiles(df_high_risk_clean, features)
+            kde_q_low = compute_kde_quantiles(df_low_risk_clean, features)
+        except Exception as e:
+            print(f"Error computing KDE quantiles for {file_path}: {e}")
+            continue
 
-    stats_path = os.path.join(args.output_path, 'stats')
-    if not os.path.exists(stats_path):
-        os.makedirs(stats_path)
-    # Save the quantiles to json files
-    kde_q_high.to_json(os.path.join(stats_path, f'{name}_kde_q_high.json'), orient='index')
-    kde_q_low.to_json(os.path.join(stats_path, f'{name}_kde_q_low.json'), orient='index')
+        # Set up output paths
+        output_path = os.path.dirname(file_path)
+        stats_path = os.path.join(output_path, args.kde_q_path)
+        os.makedirs(stats_path, exist_ok=True)
+        
+        if not args.output_path:  # use default path
+            final_output_path = output_path
+        else:  # use user-defined path
+            final_output_path = args.output_path
+            os.makedirs(final_output_path, exist_ok=True)
 
-    ### place each data point in the three defined confidence intervals
-    df = df.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
-    features = df.columns.to_list()
+        # Save the quantiles to json files
+        try:
+            kde_q_high.to_json(os.path.join(stats_path, f'{name}_kde_q_high.json'), orient='index')
+            kde_q_low.to_json(os.path.join(stats_path, f'{name}_kde_q_low.json'), orient='index')
+            print(f"Quantile files saved: {name}_kde_q_high.json, {name}_kde_q_low.json")
+        except Exception as e:
+            print(f"Error saving quantile files for {name}: {e}")
+            continue
 
-    with open(os.path.join(stats_path, args.kde_q_high_path), 'r') as f:
-        kde_q_high = json.load(f)
-        kde_q_high = pd.DataFrame(kde_q_high).T
-    with open(os.path.join(stats_path, args.kde_q_low_path), 'r') as f:
-        kde_q_low = json.load(f)
-        kde_q_low = pd.DataFrame(kde_q_low).T
+        ### place each data point in the three defined confidence intervals
+        df_features = df.drop(columns=['School Withdrawal/ Reentry Status', 'LogisticRegression', 'RandomForest'])
+        features = df_features.columns.to_list()
 
-    for feat in features:
-        q_low = kde_q_low[feat]
-        q_high = kde_q_high[feat]
+        # Load the quantiles back (for consistency)
+        try:
+            with open(os.path.join(stats_path, f'{name}_kde_q_high.json'), 'r') as f:
+                kde_q_high_loaded = json.load(f)
+                kde_q_high_loaded = pd.DataFrame(kde_q_high_loaded).T
+            with open(os.path.join(stats_path, f'{name}_kde_q_low.json'), 'r') as f:
+                kde_q_low_loaded = json.load(f)
+                kde_q_low_loaded = pd.DataFrame(kde_q_low_loaded).T
+        except Exception as e:
+            print(f"Error loading quantile files for {name}: {e}")
+            continue
 
-        # uncertainty = df[feat].apply(find_uncertain_intervals, args=(q_low, q_high))
-        # df_uncertainty[feat] = uncertainty
-        anomaly = df[feat].apply(compute_signed_anomaly_score, args=(q_high, q_low))
-        df_uncertainty[feat] = anomaly
+        # Compute anomaly scores
+        try:
+            for feat in features:
+                q_low = kde_q_low_loaded[feat]
+                q_high = kde_q_high_loaded[feat]
 
-    # save the dataframe with uncertainty intervals to excel
-    df_uncertainty.to_excel(os.path.join(args.output_path, f'{name}_anomaly.xlsx'), index=False)
+                # uncertainty = df_features[feat].apply(find_uncertain_intervals, args=(q_low, q_high))
+                # df_uncertainty[feat] = uncertainty
+                anomaly = df_features[feat].apply(compute_signed_anomaly_score, args=(q_high, q_low))
+                df_uncertainty[feat] = anomaly
+
+            # save the dataframe with uncertainty intervals to excel
+            anomaly_output_path = os.path.join(final_output_path, f'{name}_anomaly.xlsx')
+            df_uncertainty.to_excel(anomaly_output_path, index=False)
+            print(f"Anomaly results saved: {anomaly_output_path}")
+            
+        except Exception as e:
+            print(f"Error computing anomaly scores for {name}: {e}")
+            continue
+        
+        print(f"Successfully processed {name} group from {file_path}")
+
+    print(f"\n{'='*60}")
+    print("Processing completed for all files!")
+    print(f"{'='*60}")
