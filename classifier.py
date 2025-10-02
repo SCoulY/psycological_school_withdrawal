@@ -20,7 +20,7 @@ top10_features_teens = ['SCL-90 DEP', 'A-DES-Ⅱ_PI', 'SCL-90 ANX', 'CSES_TS', '
 top10_features_children = ['CSES_TS', 'HEI_TS', 'A-DES-Ⅱ_PI', 'A-DES-Ⅱ_AII', 'A-DES-Ⅱ_DPDR', 'EMBU-F EW', 'EMBU-F PUN', 'EMBU-M FS', 'CSQ_REP', 'A-SSRS_OS']
 
 
-def train_classifier(classifier, ckpt_path=None, out_path=None, disable_top10=False):
+def train_classifier(classifier, feat, label, table_name, ckpt_path=None, out_path=None, disable_top10=False):
     accs = []
     cms = []
     reports = []
@@ -80,10 +80,11 @@ def train_classifier(classifier, ckpt_path=None, out_path=None, disable_top10=Fa
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument('--file_path', type=str, help='Path to the excel/csv file', default='data/clean_adults.csv')
-    args.add_argument('--out_path', type=str, help='Path to the output model file', default='ckpt/adults')
+    args.add_argument('--out_path', type=str, help='Path to the output model file', default=None)
     args.add_argument('--ckpt_path', type=str, help='Path to the checkpoint file', default=None)
     args.add_argument('--classifier', type=str, nargs='+', help='Classifier to use', default=['SVM', 'RandomForest', 'LogisticRegression'])
-    args.add_argument('--disable_top10', action='store_true', help='Disable top 10 features for building the model', default=False)
+    args.add_argument('--train_both', action='store_true', help='Train both top-10 and full feature models', default=False)
+    args.add_argument('--disable_top10', action='store_true', help='Disable top 10 features for building the model', default=True)
     args.add_argument('--scaler_path', type=str, help='Path to a saved scaler bundle (joblib) containing scaler and column info', default=None)
     args = args.parse_args()
 
@@ -93,78 +94,99 @@ if __name__ == "__main__":
     else:
         df = pd.read_csv(args.file_path)
 
+    ### create output directory if it doesn't exist
+    if not args.out_path:
+        group_name = os.path.basename(args.file_path).split('.')[0].split('_')[-1] # adults, teens, children
+        args.out_path = os.path.join('ckpt', group_name)
+    os.makedirs(args.out_path, exist_ok=True)
+
     # drop unnamed columns
     df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
 
     table_name = os.path.basename(args.file_path).split('.')[0]
 
-    ### get features and labels
-    if args.disable_top10:
-        feat = df.drop(columns=['School Withdrawal/ Reentry Status'])
+    # Determine which feature configurations to train
+    if args.train_both:
+        feature_configs = [False, True]  # [top10, full_features]
+        print("Training both top-10 and full feature models")
     else:
-        if 'adults' in args.file_path:
-            top10_features = top10_features_adults
-        elif 'teens' in args.file_path:
-            top10_features = top10_features_teens
-        elif 'children' in args.file_path:
-            top10_features = top10_features_children
+        feature_configs = [args.disable_top10]
+        config_name = "full features" if args.disable_top10 else "top-10 features"
+        print(f"Training {config_name} model only")
+
+    # Train models for each feature configuration
+    for disable_top10 in feature_configs:
+        feature_type = "full features" if disable_top10 else "top-10 features"
+        print(f"\n{'='*50}")
+        print(f"Training with {feature_type}")
+        print(f"{'='*50}")
+
+        ### get features and labels
+        if disable_top10:
+            feat = df.drop(columns=['School Withdrawal/ Reentry Status'])
+            print(f"Using all features ({len(feat.columns)} features)")
         else:
-            raise ValueError("File path does not match any known dataset.")
-        feat = df[top10_features]
+            if 'adults' in args.file_path:
+                top10_features = top10_features_adults
+            elif 'teens' in args.file_path:
+                top10_features = top10_features_teens
+            elif 'children' in args.file_path:
+                top10_features = top10_features_children
+            else:
+                raise ValueError("File path does not match any known dataset.")
+            feat = df[top10_features]
+            print(f"Using top 10 features: {top10_features}")
 
-    label = df['School Withdrawal/ Reentry Status']
+        label = df['School Withdrawal/ Reentry Status']
 
-    ### Scale the features
-    # scaler = StandardScaler()
-    # feat = scaler.fit_transform(feat)
+        ### Scale the features
+        exclude_cols = ['Gender']
+        scale_cols = [c for c in feat.columns if c not in exclude_cols]
 
-    exclude_cols = ['Gender']
-    scale_cols = [c for c in feat.columns if c not in exclude_cols]
+        if args.scaler_path and os.path.isfile(args.scaler_path):
+            # Load existing scaler bundle
+            scaler_bundle = joblib.load(args.scaler_path)
+            scaler = scaler_bundle['scaler']
+            saved_scale_cols = scaler_bundle.get('scale_cols', scale_cols)
+            # Transform only columns present both in feat and saved_scale_cols to be safe
+            cols_to_transform = [c for c in saved_scale_cols if c in feat.columns]
+            X_scaled_part = scaler.transform(feat[cols_to_transform])
+            X_scaled_df = feat.copy()
+            X_scaled_df[cols_to_transform] = X_scaled_part
+            feat = X_scaled_df
+        else:
+            # Fit new scaler and save bundle for future reuse
+            scaler = StandardScaler()
+            X_scaled_part = scaler.fit_transform(feat[scale_cols])
+            X_scaled_df = feat.copy()
+            X_scaled_df[scale_cols] = X_scaled_part
+            feat = X_scaled_df
+            if args.out_path:
+                os.makedirs(args.out_path, exist_ok=True)
+                scaler_bundle = {
+                    'scaler': scaler,
+                    'scale_cols': scale_cols,
+                    'exclude_cols': exclude_cols,
+                    'feature_order': feat.columns.tolist()
+                }
+                scaler_suffix = '_top10' if not disable_top10 else ''
+                joblib.dump(scaler_bundle, os.path.join(args.out_path, f'{table_name}_scaler{scaler_suffix}.pkl'))
 
-    if args.scaler_path and os.path.isfile(args.scaler_path):
-        # Load existing scaler bundle
-        scaler_bundle = joblib.load(args.scaler_path)
-        scaler = scaler_bundle['scaler']
-        saved_scale_cols = scaler_bundle.get('scale_cols', scale_cols)
-        # Transform only columns present both in feat and saved_scale_cols to be safe
-        cols_to_transform = [c for c in saved_scale_cols if c in feat.columns]
-        X_scaled_part = scaler.transform(feat[cols_to_transform])
-        X_scaled_df = feat.copy()
-        X_scaled_df[cols_to_transform] = X_scaled_part
-        feat = X_scaled_df
-    else:
-        # Fit new scaler and save bundle for future reuse
-        scaler = StandardScaler()
-        X_scaled_part = scaler.fit_transform(feat[scale_cols])
-        X_scaled_df = feat.copy()
-        X_scaled_df[scale_cols] = X_scaled_part
-        feat = X_scaled_df
-        if args.out_path:
-            os.makedirs(args.out_path, exist_ok=True)
-            scaler_bundle = {
-                'scaler': scaler,
-                'scale_cols': scale_cols,
-                'exclude_cols': exclude_cols,
-                'feature_order': feat.columns.tolist()
-            }
-            scaler_suffix = '_top10' if not args.disable_top10 else ''
-            joblib.dump(scaler_bundle, os.path.join(args.out_path, f'{table_name}_scaler{scaler_suffix}.pkl'))
-            # Example usage for new samples (documentation comment):
-            # loaded = joblib.load('..._scaler.pkl'); new_df[loaded['scale_cols']] = loaded['scaler'].transform(new_df[loaded['scale_cols']])
+        for clf_name in args.classifier:
+            print(f"\nTraining {clf_name} with {feature_type}...")
+            accs, cms, reports, aucs = train_classifier(clf_name, feat, label, table_name, ckpt_path=args.ckpt_path, out_path=args.out_path, disable_top10=disable_top10)
 
-    for clf_name in args.classifier:
-        accs, cms, reports, aucs = train_classifier(clf_name, ckpt_path=args.ckpt_path, out_path=args.out_path, disable_top10=args.disable_top10)
-
-        # Print average precision, recall, and F1 with std
-        precisions = [r['macro avg']['precision'] for r in reports]
-        recalls = [r['macro avg']['recall'] for r in reports]
-        f1s = [r['macro avg']['f1-score'] for r in reports]
-        print(f'Precision (mean ± std): {np.mean(precisions):.4f} ± {np.std(precisions):.4f}')
-        print(f'Recall (mean ± std): {np.mean(recalls):.4f} ± {np.std(recalls):.4f}')
-        print(f'F1-score (mean ± std): {np.mean(f1s):.4f} ± {np.std(f1s):.4f}')
-
-        print(f'Accuracy (mean ± std): {np.mean(accs):.4f} ± {np.std(accs):.4f}')
-        print(f'AUC (mean ± std): {np.mean(aucs):.4f} ± {np.std(aucs):.4f}')
+            # Print average precision, recall, and F1 with std
+            precisions = [r['macro avg']['precision'] for r in reports]
+            recalls = [r['macro avg']['recall'] for r in reports]
+            f1s = [r['macro avg']['f1-score'] for r in reports]
+            print(f'{clf_name} with {feature_type} - Results:')
+            print(f'  Precision (mean ± std): {np.mean(precisions):.4f} ± {np.std(precisions):.4f}')
+            print(f'  Recall (mean ± std): {np.mean(recalls):.4f} ± {np.std(recalls):.4f}')
+            print(f'  F1-score (mean ± std): {np.mean(f1s):.4f} ± {np.std(f1s):.4f}')
+            print(f'  Accuracy (mean ± std): {np.mean(accs):.4f} ± {np.std(accs):.4f}')
+            if aucs:
+                print(f'  AUC (mean ± std): {np.mean(aucs):.4f} ± {np.std(aucs):.4f}')
 
         ### save model from the last run
         # if args.out_path:
