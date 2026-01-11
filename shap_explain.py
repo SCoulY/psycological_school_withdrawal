@@ -430,7 +430,7 @@ def circular_shap_plot(shap_values,
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument('--file_path', type=str, help='Path to the excel file', default='C:/Users/SCoulY/Desktop/psycology/data')
-    args.add_argument('--ckpt_path', type=str, help='Path to the checkpoint files', default='C:/Users/SCoulY/Desktop/psycology/ckpt_5runs/children_correct/full_wo_gender/children/')
+    args.add_argument('--ckpt_path', type=str, help='Path to the checkpoint files', default='C:/Users/SCoulY/Desktop/psycology/ckpt/children_correct/full_wo_gender/children/')
     args.add_argument('--plot_path', type=str, help='Path to save the plot', default='C:/Users/SCoulY/Desktop/psycology/plot/shap_plot_avg_children_wo_gender')
     args = args.parse_args()
 
@@ -448,7 +448,7 @@ if __name__ == "__main__":
 
     # print(f"Checkpoint files found: {os.listdir(args.ckpt_path)}")
     for ckpt in os.listdir(args.ckpt_path):
-        if '.pkl' not in ckpt or 'SVM' in ckpt:
+        if '.pkl' not in ckpt or 'SVM' in ckpt or 'scaler' in ckpt:
             continue
         model_name = ckpt.split('acc')[0][:-1].split('_')[-1] #LogisticRegression
 

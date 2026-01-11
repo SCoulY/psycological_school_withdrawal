@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.cluster import KMeans
 from sklearn.metrics import adjusted_rand_score
-import hdbscan
 
 # --- 1. Setup & Style Configuration ---
 # Use a professional, clean font common in publications
@@ -18,17 +17,16 @@ plt.rcParams['font.sans-serif'] = 'Arial'
 plt.rcParams['axes.unicode_minus'] = False
 
 
-def plot_single_table(file_path: str):
+def plot_single_table(file_path: str, save_path: str):
     # --- 2. Data Loading and Preprocessing ---
     # This section remains largely the same
     input_file = file_path #'C:/Users/SCoulY/Desktop/psycology/data/clean_adults.xlsx'
-    df = pd.read_excel(input_file)
-    df = df.drop(df.columns[0], axis=1)
+    df = pd.read_csv(input_file)
     table_name = os.path.basename(input_file).split('.')[0]
 
     # Features and Labels
-    feat = df.drop(columns=['状态'])
-    label = df['状态'].map({"复学": 1, "休学": 0})
+    feat = df.drop(columns=['School Withdrawal/ Reentry Status'])
+    label = df['School Withdrawal/ Reentry Status']
     label.name = 'Status' # Simplified for legend
 
     # This is a placeholder for your actual conversion function
@@ -159,15 +157,17 @@ def plot_single_table(file_path: str):
 
     plt.tight_layout(rect=[0, 0, 0.9, 1]) # Adjust layout to make space for the legend
     # plt.savefig(f'C:/Users/SCoulY/Desktop/psycology/plot/umap_publication_quality.png', dpi=300, bbox_inches='tight')
-    plt.savefig(f'C:/Users/SCoulY/Desktop/psycology/plot/umap_{table_name}.svg', format='svg', bbox_inches='tight')
+    plt.savefig(f'{save_path}/umap_{table_name}.svg', format='svg', bbox_inches='tight')
     # plt.show()
     plt.close(fig)  # Close the figure to free memory
 
 if __name__ == "__main__":
     file_list = [
-        'C:/Users/SCoulY/Desktop/psycology/data/clean_adults.xlsx',
-        'C:/Users/SCoulY/Desktop/psycology/data/clean_teens_wo_scl.xlsx',
-        'C:/Users/SCoulY/Desktop/psycology/data/clean_teens.xlsx'
+        '/Users/colin/Desktop/psycological_school_withdrawaw/data/clean_adults.csv',
+        '/Users/colin/Desktop/psycological_school_withdrawaw/data/clean_children.csv',
+        '/Users/colin/Desktop/psycological_school_withdrawaw/data/clean_teens.csv'
         ]
+    output_dir = 'C:/Users/SCoulY/Desktop/psycology/plot/'
+    os.makedirs(output_dir, exist_ok=True)
     for file_path in file_list:
-        plot_single_table(file_path)
+        plot_single_table(file_path, save_path=output_dir)

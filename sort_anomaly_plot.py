@@ -7,8 +7,11 @@ import numpy as np
 from matplotlib.patches import Patch
 from matplotlib import gridspec
 
+<<<<<<< HEAD
 
 # Your feature lists remain the same...
+=======
+>>>>>>> 00ec73c19ee2665fae5ff5fcbea77e4e73ad4096
 adults_importance = ['HEI_TS', 'CSES_TS', 'SCL-90 DEP', 'SCL-90 GSI', 'SCL-90 PST', 'SCL-90 TS', 'SCL-90 ANX', 'SCL-90 PSY', 'SCL-90 NST', 'SCL-90 ADD', 'SCL-90 PSDI', 'SCL-90 PAR', 'EMBU-M OI', 'SCL-90 SOM', 'EMBU-F OP', 'EMBU-F EW', 'EMBU-M EW', 'SSRS_TS', 'DES-Ⅱ_AMN', 'DES-Ⅱ_TS', 'SCL-90 OC', 'SSRS_SS', 'SCL-90 IS', 'DES-Ⅱ_ABS', 'EMBU-F OI', 'SCL-90 HOS', 'DES-Ⅱ_DPDR', 'CSQ_FAN', 'SSRS_OS', 'EMBU-F REJ', 'CSQ_RAT', 'EMBU-F PUN', 'CSQ_HS', 'SSRS_SU', 'CSQ_REP', 'SCL-90 PHOB', 'CSQ_PS', 'EMBU-M REJ', 'EMBU-F FS', 'EMBU-M PUN',  'CSQ_SB', 'EMBU-M FS']
 teens_importance = ['CSES_TS', 'SCL-90 DEP', 'HEI_TS', 'SCL-90 ANX', 'A-DES-Ⅱ_TS', 'A-DES-Ⅱ_PI', 'SCL-90 GSI', 'SCL-90 NST', 'SCL-90 PSY', 'EMBU-F EW', 'A-SSRS_SS', 'SCL-90 ADD', 'A-DES-Ⅱ_DPDR', 'SCL-90 PSDI', 'A-SSRS_TS', 'A-SSRS_SU', 'A-DES-Ⅱ_DA', 'SCL-90 HOS', 'EMBU-F OI', 'SCL-90 SOM', 'EMBU-M EW', 'EMBU-F PUN', 'SCL-90 TS', 'SCL-90 PHOB', 'EMBU-F OP', 'EMBU-M OI', 'SCL-90 PST', 'CSQ_FAN', 'A-SSRS_OS', 'EMBU-M PUN', 'CSQ_REP', 'SCL-90 IS', 'CSQ_PS', 'SCL-90 PAR', 'SCL-90 OC', 'CSQ_HS', 'A-DES-Ⅱ_AII', 'CSQ_SB', 'CSQ_RAT', 'EMBU-M REJ', 'EMBU-F REJ', 'EMBU-M FS', 'EMBU-F FS']
 children_importance = ['CSES_TS', 'HEI_TS', 'A-DES-Ⅱ_TS', 'A-SSRS_TS', 'A-DES-Ⅱ_PI', 'A-SSRS_SU', 'A-SSRS_OS', 'A-DES-Ⅱ_DA', 'A-DES-Ⅱ_AII', 'A-DES-Ⅱ_DPDR', 'CSQ_PS', 'EMBU-M PUN', 'A-SSRS_SS', 'EMBU-M OI', 'EMBU-F EW', 'EMBU-M EW', 'EMBU-M REJ', 'CSQ_SB', 'CSQ_HS', 'EMBU-F OP', 'CSQ_REP', 'EMBU-F FS', 'EMBU-F REJ', 'CSQ_RAT', 'EMBU-F PUN', 'EMBU-F OI', 'CSQ_FAN', 'EMBU-M FS']
@@ -64,7 +67,7 @@ def single_plot(ax, args, uncert_path, method):
     # ax.set_title(f'{table_name.title()} - {method}', fontsize=16)
     
     # Return the correctly ordered status column for the side plot
-    return df_ori['status']
+    return df_ori['School Withdrawal/ Reentry Status']
 
 
 if __name__ == '__main__':
