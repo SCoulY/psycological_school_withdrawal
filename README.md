@@ -6,6 +6,36 @@ This guide shows how to set up the Python environment and run the full workflow:
 
 ---
 
+## Revised analyses and supplementary data
+
+The reviewer-response analyses are kept in `reviewer_response_experiments/`. The
+revised supervised evaluation is driven by `p0_nested_cv.py`: it uses leakage-free
+5-fold × 10-repeat nested cross-validation, fold-specific preprocessing and Top-10
+selection, three-fold inner hyperparameter tuning, and calibration. Supporting
+scripts compute pooled calibration/performance summaries, paired full-versus-Top-10
+comparisons, fixed-default sensitivity analyses, feature-selection stability,
+marginal Welch/BH-FDR contrasts, and conventional SHAP plots.
+
+The KDE validation scripts are `p1_kde_cohort.py`, `p1_kde_aggregation.py`,
+`p1_kde_independent_validation.py`, and `p1_kde_sensitivity.py`. They construct
+model--label-conditioned reference cohorts using training folds only and evaluate
+held-out aggregation, fallback, and threshold/bandwidth sensitivity. `p2_*` scripts
+generate performance intervals and marginal-group test outputs.
+
+Machine-readable supplementary results are provided in the root-level
+`supplementary_data/` directory:
+
+- `Supplementary_Data_1_*`: Welch contrasts with within-age Benjamini--Hochberg FDR correction;
+- `Supplementary_Data_2_*`: pooled nested-CV performance and uncertainty intervals;
+- `Supplementary_Data_3_*`: paired full-feature versus Top-10 AUROC comparisons;
+- `Supplementary_Data_4_*`: feature-selection stability and fold-wise selected hyperparameters;
+- `Supplementary_Data_5_*`: KDE fallback, aggregation, feature-level, and sensitivity summaries;
+- `Supplementary_Data_6_*`: mean-absolute SHAP summaries.
+
+The CSV files correspond to the revised analyses and complement the manuscript and
+supplementary PDF figures. They are not intended to replace the de-identified input
+matrices in `data/`.
+
 ## Clone the repository
 
 First, clone/download this [repository](https://github.com/SCoulY/psycological_school_withdrawal) to your local machine:
