@@ -1,0 +1,13 @@
+﻿cohort,stage,n_primary,n_selected,n_eligible_class,min_samples,low_threshold,high_threshold,joint_score,rank_direction,group,feature_set,triggered_fallback
+withdrawal,primary_threshold,22,22,122,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,lowest,adults,full,False
+reentry,primary_threshold,639,639,678,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,highest,adults,full,False
+withdrawal,primary_threshold,31,31,122,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,lowest,adults,top10,False
+reentry,primary_threshold,643,643,678,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,highest,adults,top10,False
+withdrawal,rank_top10,0,10,68,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,lowest,teens,full,True
+reentry,primary_threshold,101,101,149,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,highest,teens,full,False
+withdrawal,rank_top10,1,10,68,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,lowest,teens,top10,True
+reentry,primary_threshold,104,104,149,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,highest,teens,top10,False
+withdrawal,rank_top10,0,10,63,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,lowest,children,full,True
+reentry,primary_threshold,66,66,117,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,highest,children,full,False
+withdrawal,rank_top10,0,10,63,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,lowest,children,top10,True
+reentry,primary_threshold,68,68,117,10,0.3,0.7,max(p_reentry) for withdrawal / min(p_reentry) for reentry,highest,children,top10,False
